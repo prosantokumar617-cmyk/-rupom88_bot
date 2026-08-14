@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Monetag Ad Reward Web App</title>
+    <title>Monetag Ad Reward Web App</title>
     <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
-    <!-- Updated Ad Network SDK Script -->
-    <script src='//libtl.com/sdk.js' data-zone='11555508' data-sdk='show_11555508'></script>
+    <!-- Monetag Ad Network SDK Script -->
+    <script src="https://libtl.com/sdk.js" data-zone="11555508" data-sdk="show_11555508"></script>
 
     <style>
         * {
@@ -154,6 +154,10 @@
             font-size: 16px;
             text-align: center;
         }
+        .withdraw-section label {
+            display: block;
+            margin-top: 8px;
+        }
         .withdraw-section input, .withdraw-section select {
             width: 100%;
             padding: 10px;
@@ -185,22 +189,22 @@
 <body>
 
 <div class="container">
-    <h2> Pkriya Ad Reward</h2>
-    <div class="notice-banner">      !</div>
+    <h2>Pkriya Ad Reward</h2>
+    <div class="notice-banner">বিজ্ঞাপন দেখুন এবং পয়েন্ট আর্ন করুন!</div>
 
     <!-- User Info -->
     <div class="user-info">
-        , <span id="user-name"></span>
+        স্বাগতম, <span id="user-name">User</span>
     </div>
 
     <!-- Stats -->
     <div class="stats-grid">
         <div class="stat-card">
-            <h4> </h4>
+            <h4>মোট দেখা অ্যাড</h4>
             <p id="watched-ads">0</p>
         </div>
         <div class="stat-card">
-            <h4> </h4>
+            <h4>মোট পয়েন্ট</h4>
             <p id="earned-points">0.00</p>
         </div>
     </div>
@@ -212,7 +216,7 @@
 
     <!-- Timer Box -->
     <div class="timer-box" id="timer-box">
-            : <b id="timer">15</b> 
+        পরবর্তী বিজ্ঞাপনের জন্য অপেক্ষা করুন: <b id="timer">15</b> সেকেন্ড
     </div>
 
     <!-- Buttons -->
@@ -226,21 +230,22 @@
 
     <!-- Withdraw Section -->
     <div class="withdraw-section" id="withdraw-section">
-        <h3>  (Withdraw)</h3>
-        <label style="font-size: 12px; color: #ccc;"> :</label>
-        <input type="number" id="withdraw-amount" placeholder="  " />
+        <h3>পয়েন্ট উত্তোলন (Withdraw)</h3>
         
-        <label style="font-size: 12px; color: #ccc;"> :</label>
+        <label style="font-size: 12px; color: #ccc;">উত্তোলনের পরিমাণ:</label>
+        <input type="number" id="withdraw-amount" placeholder="পয়েন্টের পরিমাণ লিখুন" />
+        
+        <label style="font-size: 12px; color: #ccc;">পেমেন্ট পদ্ধতি:</label>
         <select id="payment-method">
             <option value="bkash">Bkash</option>
             <option value="nagad">Nagad</option>
             <option value="recharge">Mobile Recharge</option>
         </select>
 
-        <label style="font-size: 12px; color: #ccc;"> :</label>
+        <label style="font-size: 12px; color: #ccc;">অ্যাকাউন্ট নম্বর:</label>
         <input type="text" id="withdraw-phone" placeholder="017XXXXXXXX" />
 
-        <button onclick="withdrawPoints()"> </button>
+        <button onclick="withdrawPoints()">উত্তোলন রিকোয়েস্ট পাঠান</button>
         <p id="withdraw-status"></p>
     </div>
 </div>
@@ -248,8 +253,10 @@
 <script>
     const MIN_WITHDRAW_POINTS = 5;
     const ADMIN_USER_ID = "7694112804"; 
-    const BOT_TOKEN = "8857836007:AAF7SU9rJlq8kapsn2hQHA4XxLrPczHKzDI"; //   
-    const DIRECT_LINK_URL = "https://omg10.com/4/10640762"; //  
+    const BOT_TOKEN = "8857836007:AAF7SU9rJlq8kapsn2hQHA4XxLrPczHKzDI"; 
+    
+    // নতুন আপডেট করা Direct Link URL
+    const DIRECT_LINK_URL = "https://omg10.com/4/11569978"; 
 
     let watchedAdsCount = 0;
     let earnedPoints = 0.00;
@@ -287,10 +294,16 @@
     function triggerAdSDK() {
         if (typeof show_11555508 === 'function') {
             try {
-                show_11555508();
+                show_11555508().then(() => {
+                    console.log("Ad show succeeded");
+                }).catch((e) => {
+                    console.warn("Ad failed or skipped by user:", e);
+                });
             } catch (e) {
-                console.log("Ad execution error:", e);
+                console.error("Ad execution error:", e);
             }
+        } else {
+            console.error("Monetag SDK script isn't loaded yet.");
         }
     }
 
@@ -324,14 +337,13 @@
         startTimer(15);
     }
 
-    // High CPM Direct Link Handler (Telegram WebApp link opener)
     function openDirectLink() {
         if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
             window.Telegram.WebApp.openLink(DIRECT_LINK_URL);
         } else {
             window.open(DIRECT_LINK_URL, '_blank');
         }
-        addRewardPoints(0.30); //     
+        addRewardPoints(0.30);
         startTimer(15);
     }
 
@@ -376,19 +388,19 @@
 
         if (!amount || amount < MIN_WITHDRAW_POINTS) {
             statusEl.style.color = "orange";
-            statusEl.textContent = `  : ${MIN_WITHDRAW_POINTS}`;
+            statusEl.textContent = `সর্বনিম্ন উত্তোলনের পয়েন্ট: ${MIN_WITHDRAW_POINTS}`;
             return;
         }
 
         if (amount > earnedPoints) {
             statusEl.style.color = "red";
-            statusEl.textContent = `    : ${earnedPoints.toFixed(2)} `;
+            statusEl.textContent = `পর্যাপ্ত পয়েন্ট নেই! আপনার ব্যালেন্স: ${earnedPoints.toFixed(2)} পয়েন্ট`;
             return;
         }
 
         if (!phoneNumber || phoneNumber.length < 11) {
             statusEl.style.color = "orange";
-            statusEl.textContent = "   ";
+            statusEl.textContent = "সঠিক মোবাইল নম্বর দিন";
             return;
         }
 
@@ -396,12 +408,12 @@
         document.getElementById('earned-points').textContent = earnedPoints.toFixed(2);
         localStorage.setItem('earnedPoints', earnedPoints.toFixed(2));
 
-        const message = ` Withdrawal Request!\n\nUser: ${telegramUserName}\nAmount: ${amount} Points\nMethod: ${paymentMethod.toUpperCase()}\nPhone: ${phoneNumber}`;
+        const message = ` Withdraw Request!\n\nUser: ${telegramUserName}\nAmount: ${amount} Points\nMethod: ${paymentMethod.toUpperCase()}\nPhone: ${phoneNumber}`;
         
         sendWithdrawRequestToAdmin(message);
 
         statusEl.style.color = "#4caf50";
-        statusEl.textContent = '    !';
+        statusEl.textContent = 'উত্তোলন রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে!';
 
         document.getElementById('withdraw-amount').value = '';
         document.getElementById('withdraw-phone').value = '';
